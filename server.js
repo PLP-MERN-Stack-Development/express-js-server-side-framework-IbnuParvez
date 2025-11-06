@@ -66,18 +66,17 @@ app.post('/api/products', (req, res) => {
 app.put('/api/products/:id', (req, res) => {
 	const product = products.find(p => p.id === req.params.id);
 	if(!product) return res.status(404).json({message: "Product not found"});
-	
 	Object.assign(product, req.body);
 	res.json(product);
 });
 // DELETE /api/products/:id - Delete a product
 app,delete('/api/products/:id', async (req, res) => {
-	try {
-	await products.findByIdAndDelete(req.params.id);
-	res.json({message: "Deleted succesfully"});
-	} catch (error) {
-		res.status(500).json({message: error.message});
-	}
+	const productIndex = products.findIndex(p => p.id === req.params.id);
+  	if (productIndex === -1) {
+    	return res.status(404).json({ message: 'Product not found' });
+  	}
+  	products.splice(productIndex, 1);
+  	res.json({ message: 'Deleted successfully' });
 });
 // Example route implementation for GET /api/products
 app.get('/api/products', (req, res) => {
@@ -86,18 +85,22 @@ app.get('/api/products', (req, res) => {
 
 // TODO: Implement custom middleware for:
 // - Request logging
-
+app.use((req, res, next) => {
+  	const time = new Date().toISOString();
+  	console.log(`[${time}] ${req.method} ${req.originalUrl}`);
+  	next();
+});
 // - Authentication
 app.get('/api', function auth(req, res) => {
 	const apiKey = req.header('x-api-key');
-	if ( apiKey != process.env.API_key) {
+	if ( apiKey != process.env.API_KEY) {
 	return res.status(404).json({message: "Unauthorized"});
 	}
 });
 // - Error handling
-app.use('/api',function errorHandler (err, req, res, next){
+app.use('/api', (err, req, res, next){
 	console.error(err.message);
-	res.status(500).json({Something went wrong});
+	res.status(500).json({message: "Something went wrong"});
 });
 // Start the server
 app.listen(PORT, () => {

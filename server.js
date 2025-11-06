@@ -88,8 +88,17 @@ app.get('/api/products', (req, res) => {
 // - Request logging
 
 // - Authentication
+app.get('/api', function auth(req, res) => {
+	const apiKey = req.header('x-api-key');
+	if ( apiKey != process.env.API_key) {
+	return res.status(404).json({message: "Unauthorized"});
+	}
+});
 // - Error handling
-
+app.use('/api',function errorHandler (err, req, res, next){
+	console.error(err.message);
+	res.status(500).json({Something went wrong});
+});
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

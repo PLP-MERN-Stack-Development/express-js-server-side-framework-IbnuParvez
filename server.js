@@ -10,7 +10,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware setup
-app.use(bodyParser.json());
+app.use(express.json());
 
 // Sample in-memory products database
 let products = [
@@ -48,10 +48,37 @@ app.get('/', (req, res) => {
 // TODO: Implement the following routes:
 // GET /api/products - Get all products
 // GET /api/products/:id - Get a specific product
+app.get('/api/products/:id', async (req, res) => {
+	const product = await products.find(p => p.id === req.params.id);
+	if (!product) {
+		return res.status(404).json({Message: "Product not found"});
+	}
+	res.json(product);
+});
 // POST /api/products - Create a new product
+app.post('/api/products', (req, res) => {
+	const { name, description, price, category, instock} = req.body;
+	const newProduct = { id: uuidv4(), name, description, price, category, instock };
+	products.push(newProduct);
+	res.status(201).json(newProduct);
+});
 // PUT /api/products/:id - Update a product
+app.put('/api/products/:id', (req, res) => {
+	const product = products.find(p => p.id === req.params.id);
+	if(!product) return res.status(404).json({message: "Product not found"});
+	
+	Object.assign(product, req.body);
+	res.json(product);
+});
 // DELETE /api/products/:id - Delete a product
-
+app,delete('/api/products/:id', async (req, res) => {
+	try {
+	await products.findByIdAndDelete(req.params.id);
+	res.json({message: "Deleted succesfully"});
+	} catch (error) {
+		res.status(500).json({message: error.message});
+	}
+});
 // Example route implementation for GET /api/products
 app.get('/api/products', (req, res) => {
   res.json(products);
@@ -59,6 +86,7 @@ app.get('/api/products', (req, res) => {
 
 // TODO: Implement custom middleware for:
 // - Request logging
+
 // - Authentication
 // - Error handling
 
